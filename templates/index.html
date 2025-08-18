@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Court AI</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7f6;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 20px;
+      }
+      .controls,
+      .case-facts-display {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      textarea {
+        width: 98%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        min-height: 80px;
+        font-size: 1rem;
+        margin-bottom: 10px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-right: 10px;
+        transition: background-color 0.2s ease-in-out;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .trial-log-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        min-height: 300px;
+      }
+      .trial-log h2 {
+        margin-top: 0;
+      }
+      .statement {
+        margin-bottom: 15px;
+        padding: 12px;
+        border-radius: 6px;
+        line-height: 1.6;
+        position: relative;
+      }
+      .statement strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 0.9em;
+        color: #555;
+      }
+      .statement .desc {
+        font-size: 0.8em;
+        color: #777;
+        margin-top: 8px;
+        font-style: italic;
+      }
+      .PlaintiffAgent {
+        background-color: #e0f2f7;
+        border-left: 5px solid #00796b;
+      }
+      .DefendantAgent {
+        background-color: #ffebee;
+        border-left: 5px solid #c62828;
+      }
+      .JudgeAgent {
+        background-color: #fff8e1;
+        border-left: 5px solid #f57f17;
+      }
+      .System {
+        background-color: #e8eaf6;
+        border-left: 5px solid #3f51b5;
+        font-style: italic;
+      }
+      .status {
+        margin-top: 15px;
+        text-align: center;
+        font-style: italic;
+        color: #555;
+      }
+      footer {
+        text-align: center;
+        padding: 15px;
+        background-color: #343a40;
+        color: white;
+        margin-top: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Virtual Court AI</h1>
+
+      <div class="controls">
+        <label for="caseFactsInput">Enter Case Facts:</label>
+        <textarea id="caseFactsInput" rows="6">
+The plaintiff, a small bakery named "Sweet Delights," alleges that the defendant, "Reliable Shipping Co.," breached a contract for the refrigerated transport of a large wedding cake. The contract stipulated delivery by 10:00 AM on Saturday for a wedding at noon. The cake was picked up on Friday evening. However, the defendant's refrigerated truck broke down en route, and a replacement vehicle did not arrive until 2:00 PM on Saturday, four hours late. By this time, the wedding ceremony was over, and the client had to arrange for an emergency, much simpler cake from a local supermarket. "Sweet Delights" claims financial loss due to the full refund they had to provide to their client for the wedding cake, loss of reputation, and the cost of the ingredients for the undelivered cake. Defendant's private knowledge: The breakdown was due to a sudden, unexpected engine part failure despite recent standard maintenance. They immediately dispatched their closest available replacement truck, but it was 2 hours away. The contract has a clause: 'Liability for delays due to unforeseeable mechanical failure is limited to 25% of the contract value.' Sweet Delights was offered this 25% but refused.</textarea
+        >
+        <button id="startTrialBtn">Start Trial</button>
+        <button id="nextStatementBtn" disabled>Next Statement</button>
+      </div>
+
+      <div
+        id="caseFactsDisplay"
+        class="case-facts-display"
+        style="display: none"
+      >
+        <h2>Current Case Facts:</h2>
+        <p id="currentCaseOutput"></p>
+      </div>
+
+      <div class="trial-log-container">
+        <div id="trialLog" class="trial-log">
+          <h2>Trial Log</h2>
+          <!-- Statements will be appended here -->
+        </div>
+      </div>
+      <p id="statusMessage" class="status">
+        Enter case facts and start the trial.
+      </p>
+    </div>
+    <footer>Legal-Court AI Simulation © 2024</footer>
+
+    <script>
+      const caseFactsInput = document.getElementById("caseFactsInput");
+      const startTrialBtn = document.getElementById("startTrialBtn");
+      const nextStatementBtn = document.getElementById("nextStatementBtn");
+      const trialLogDiv = document.getElementById("trialLog");
+      const statusMessageP = document.getElementById("statusMessage");
+      const caseFactsDisplayDiv = document.getElementById("caseFactsDisplay");
+      const currentCaseOutputP = document.getElementById("currentCaseOutput");
+
+      startTrialBtn.addEventListener("click", async () => {
+        const caseFacts = caseFactsInput.value.trim();
+        if (!caseFacts) {
+          alert("Please enter case facts to start the trial.");
+          return;
+        }
+
+        statusMessageP.textContent = "Initializing trial...";
+        startTrialBtn.disabled = true;
+        nextStatementBtn.disabled = true;
+        trialLogDiv.innerHTML = "<h2>Trial Log</h2>"; // Clear previous log
+        currentCaseOutputP.textContent = caseFacts;
+        caseFactsDisplayDiv.style.display = "block";
+
+        try {
+          const response = await fetch("/start_trial", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ case_facts: caseFacts }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            statusMessageP.textContent =
+              data.message || "Trial initialized. Click 'Next Statement'.";
+            nextStatementBtn.disabled = false;
+          } else {
+            statusMessageP.textContent = `Error: ${
+              data.error || "Could not start trial."
+            }`;
+            startTrialBtn.disabled = false;
+          }
+        } catch (error) {
+          statusMessageP.textContent = "Network error starting trial: " + error;
+          console.error("Start trial error:", error);
+          startTrialBtn.disabled = false;
+        }
+      });
+
+      nextStatementBtn.addEventListener("click", async () => {
+        statusMessageP.textContent = "AI is thinking...";
+        nextStatementBtn.disabled = true;
+
+        try {
+          const response = await fetch("/next_statement", { method: "POST" });
+          const data = await response.json();
+
+          if (response.ok) {
+            appendStatementToLog(data);
+            if (data.is_final) {
+              statusMessageP.textContent = "Trial concluded.";
+              // Optionally re-enable startTrialBtn here if you want them to start a new one easily
+              // startTrialBtn.disabled = false;
+            } else {
+              statusMessageP.textContent = "Ready for the next statement.";
+              nextStatementBtn.disabled = false;
+            }
+          } else {
+            statusMessageP.textContent = `Error: ${
+              data.error || "Could not get next statement."
+            }`;
+            appendStatementToLog({
+              speaker: "System",
+              statement: `Error: ${
+                data.error || "Failed to get next statement."
+              }`,
+              description: "System Error",
+            });
+            nextStatementBtn.disabled = false; // Re-enable to allow retry or if it's a recoverable error
+          }
+        } catch (error) {
+          statusMessageP.textContent = "Network error during turn: " + error;
+          appendStatementToLog({
+            speaker: "System",
+            statement: `Network Error: ${error}`,
+            description: "Network Error",
+          });
+          console.error("Next statement error:", error);
+          nextStatementBtn.disabled = false; // Re-enable on network error
+        }
+      });
+
+      function appendStatementToLog(data) {
+        if (!data || !data.speaker || typeof data.statement === "undefined") {
+          console.warn("Received incomplete statement data for log:", data);
+          return;
+        }
+        const statementDiv = document.createElement("div");
+        statementDiv.classList.add(
+          "statement",
+          data.speaker.replace(/\s+/g, "")
+        ); // Sanitize class name
+
+        let htmlContent = `<strong>${data.speaker}:</strong> `;
+        htmlContent += data.statement.replace(/\n/g, "<br>");
+        if (data.description) {
+          htmlContent += `<div class="desc">Action: ${data.description}</div>`;
+        }
+        statementDiv.innerHTML = htmlContent;
+
+        trialLogDiv.appendChild(statementDiv);
+        // Scroll to the bottom of the log
+        trialLogDiv.parentElement.scrollTop =
+          trialLogDiv.parentElement.scrollHeight;
+      }
+    </script>
+  </body>
+</html>
