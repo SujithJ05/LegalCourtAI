@@ -1,0 +1,121 @@
+
+{
+  "title": "Standard Civil Trial Flow",
+  "phases": [
+    {
+      "name": "Opening Statements",
+      "steps": [
+        {
+          "agent": "PlaintiffAgent",
+          "action": "generate_opening_statement",
+          "args": ["case_facts"],
+          "description": "Plaintiff's Opening Statement"
+        },
+        {
+          "agent": "DefendantAgent",
+          "action": "generate_opening_statement",
+          "args": ["case_facts", "history"],
+          "description": "Defendant's Opening Statement"
+        },
+        {
+          "agent": "JudgeAgent",
+          "action": "provide_opening_remarks_or_guidance",
+          "args": ["case_facts", "history"],
+          "description": "Judge's Comments on Openings"
+        }
+      ]
+    },
+    {
+      "name": "Plaintiff's Case",
+      "steps": [
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Plaintiff to present their first argument."],
+          "description": "Judge Directs Plaintiff"
+        },
+        {
+          "agent": "PlaintiffAgent",
+          "action": "present_argument",
+          "args": ["case_facts", "history", "the defendant's failure to deliver on time as per the contract"],
+          "description": "Plaintiff's Argument on Late Delivery"
+        },
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Defendant to respond or cross-examine."],
+          "description": "Judge Directs Defendant"
+        },
+        {
+          "agent": "DefendantAgent",
+          "action": "respond_to_argument",
+          "args": ["case_facts", "history", "last_statement"],
+          "description": "Defendant's Response/Cross"
+        }
+      ]
+    },
+    {
+      "name": "Defendant's Case",
+      "steps": [
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Defendant to present their primary defense argument."],
+          "description": "Judge Directs Defendant for Defense Argument"
+        },
+        {
+          "agent": "DefendantAgent",
+          "action": "present_defense_argument",
+          "args": ["case_facts", "history", "unforeseeable circumstances or mitigation of damages, referencing contract clause if applicable"],
+          "description": "Defendant's Defense Argument"
+        }
+      ]
+    },
+    {
+      "name": "Closing Arguments",
+      "steps": [
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Plaintiff for Closing Arguments."],
+          "description": "Judge Directs Plaintiff for Closing"
+        },
+        {
+          "agent": "PlaintiffAgent",
+          "action": "generate_closing_argument",
+          "args": ["case_facts", "history"],
+          "description": "Plaintiff's Closing Argument"
+        },
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Defendant for Closing Arguments."],
+          "description": "Judge Directs Defendant for Closing"
+        },
+        {
+          "agent": "DefendantAgent",
+          "action": "generate_closing_argument",
+          "args": ["case_facts", "history"],
+          "description": "Defendant's Closing Argument"
+        }
+      ]
+    },
+    {
+      "name": "Verdict",
+      "steps": [
+        {
+          "agent": "JudgeAgent",
+          "action": "manage_turn",
+          "args": ["case_facts", "history", "Judge to deliver a summary and verdict based on the arguments."],
+          "description": "Judge Directs for Verdict"
+        },
+        {
+          "agent": "JudgeAgent",
+          "action": "deliver_verdict_summary",
+          "args": ["case_facts", "history"],
+          "description": "Judge's Verdict Summary"
+        }
+      ]
+    }
+  ]
+}
